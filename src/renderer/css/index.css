@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC&display=swap');
+
+body {
+	background-image: url('./among_us.jpg');
+	background-size: cover;
+	font-family: 'Arial', sans-serif;
+	color: white;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+#app {
+	height: 100vh;
+	width: 100vw;
+}
+
+#main {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+h1 {
+	font-family: 'Amatic SC', sans-serif;
+	font-size: 90px;
+}
+
+.button {
+	background: none;
+	font-family: 'Arial', sans-serif;
+	font-size: 30px;
+	color: #fff;
+	padding: 15px;
+	border: 6px solid white;
+	border-radius: 13px;
+	margin-right: auto;
+	margin-left: auto;
+	display: block;
+}
+
+.button:hover {
+	cursor: pointer;
+	border: 6px solid #00ff00;
+}
