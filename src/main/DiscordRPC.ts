@@ -1,21 +1,25 @@
 import {Client} from "discord-rpc";
 import {clientId, clientSecret} from "./config/discord-secrets";
+import Store from "electron-store";
+import {ConfigSchema} from "./index";
 
 export interface DiscordState {
     users: any[] | undefined;
     username: string;
-    current_channel: string | undefined;
+    current_channel: string;
 }
 
 export default class DiscordRPC {
     eventReply: Function;
     discordState: DiscordState;
     rpc: Client;
+    configStore: Store<ConfigSchema>;
 
-    constructor(eventReply: Function) {
+    constructor(eventReply: Function, configStore: Store<ConfigSchema>) {
         this.discordState = {} as DiscordState;
         this.rpc = new Client({ transport: 'ipc' });
-        this.eventReply = eventReply
+        this.eventReply = eventReply;
+        this.configStore = configStore;
     }
 
     getCurrentChannel() {
@@ -24,7 +28,7 @@ export default class DiscordRPC {
                 this.discordState.current_channel = r.name;
                 this.discordState.users = r.voice_states;
             } else {
-                this.discordState.current_channel = undefined;
+                this.discordState.current_channel = '';
             }
             this.eventReply('discordState', this.discordState);
         });
@@ -49,7 +53,7 @@ export default class DiscordRPC {
 
         });
         if (!this.discordState.username) {
-            /*let accessToken = '';//this.store.get('discordToken');
+            let accessToken: string = this.configStore.get('discordToken');
             if (accessToken != '') {
                 this.rpc.login({
                     clientId,
@@ -60,21 +64,12 @@ export default class DiscordRPC {
                 this.rpc.login({
                     clientId,
                     scopes: ["rpc"],
-                    clientSecret: '',
+                    clientSecret,
                     redirectUri: "http://localhost/",
-                }).then(r => {
-                    //this.store.set('discordToken', r.accessToken);
+                }).then((r: any) => {
+                    this.configStore.set('discordToken', r.accessToken);
                 }).catch(console.error)
-            }*/
-            this.rpc.connect(clientId).then((r:any) => {
-                this.rpc.login({
-                    clientId,
-                    scopes: ["rpc"],
-                    redirectUri: 'http://localhost/lol',
-                    clientSecret
-                }).catch(console.error)
-            }).catch(console.error);
-
+            }
         } else {
             this.getCurrentChannel();
         }

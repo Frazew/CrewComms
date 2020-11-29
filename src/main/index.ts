@@ -10,8 +10,24 @@ import {format as formatUrl} from "url";
 import path from "path";
 import DiscordRPC from "./DiscordRPC";
 import {Vector2} from '@among-js/util';
+import Store from 'electron-store';
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
+
+export interface ConfigSchema {
+  accessToken: {
+    type: string,
+  }
+}
+
+let configStore = new Store<ConfigSchema>({
+  schema: {
+    accessToken: {
+      type: "string",
+      default: ''
+    }
+  }
+});
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow: BrowserWindow | null;
@@ -87,7 +103,7 @@ app.on('ready', () => {
 
 ipcMain.on('ready', async (event) => {
   const amongUsState = new AmongUsState(event.reply);
-  const discordRPC = new DiscordRPC(event.reply);
+  const discordRPC = new DiscordRPC(event.reply, configStore);
 
   amongUsState.on('updatePlayerAudio', (playerAudio: PlayerAudioSettings) => {
     discordRPC.setUserAudio(playerAudio.playerName, playerAudio.volume, 1 - playerAudio.balance, playerAudio.balance);
