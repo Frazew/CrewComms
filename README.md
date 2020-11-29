@@ -2,6 +2,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A proximity voice chat Discord implementation for the game Among Us.
+**This is currently a work in progress.**
 
 ## Features
 
