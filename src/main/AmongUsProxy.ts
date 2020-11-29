@@ -6,13 +6,12 @@ import {
     PacketType,
     PayloadType,
     prettyDisconnectReason,
-    prettyPayloadType,
     RPCFlag,
     RPCGameDataPacket
 } from "@among-js/data";
 import ByteBuffer from "bytebuffer";
 import {parsePayloads} from "@among-js/packets";
-import {PayloadPacket} from "@among-js/data/dist/types";
+import {PayloadPacket} from "@among-js/data/types";
 import {v2NumberToCode} from "@among-js/util";
 import AmongUsState, {GlobalState} from "./AmongUsState";
 
@@ -20,7 +19,9 @@ export class AmongUsProxy implements Client {
     amongUsState: AmongUsState;
 
     public connected() {}
-    public disconnected() {}
+    public disconnected() {
+        this.amongUsState.updateGlobalState(GlobalState.DISCONNECTED);
+    }
 
     public constructor(amongUsState: AmongUsState) {
         this.amongUsState = amongUsState
@@ -63,9 +64,9 @@ export class AmongUsProxy implements Client {
         for (let payload of payloads) {
             switch (payload.type) {
                 case PayloadType.JoinedGame:
-                    this.amongUsState.gameState.code = v2NumberToCode(payload.code);
-                    this.amongUsState.globalState = GlobalState.IN_LOBBY;
-                    console.log(payload);
+                    this.amongUsState.updateGameCode(v2NumberToCode(payload.code));
+                    this.amongUsState.updateGlobalState(GlobalState.IN_LOBBY);
+                    this.amongUsState.updateSelfPlayerClientId(payload.playerClientId);
                     break;
                 case PayloadType.GameData:
                     this.processGameData(payload);
@@ -74,9 +75,7 @@ export class AmongUsProxy implements Client {
                     this.processGameData(payload);
                     break;
                 default:
-                    console.log("Unknown payload type " + prettyPayloadType(payload.type));
-                    console.log(payload);
-                    console.log(this.amongUsState.gameState);
+                    console.log("Unknown payload type " + payload.type);
             }
         }
     }
@@ -95,13 +94,15 @@ export class AmongUsProxy implements Client {
                 case GameDataType.Spawn:
                     if (part.spawnId == 4) {
                         let component = part.components[0].data;
-
                         // Ignore isNew but we need to read the byte, we could also increment the offset but meh
                         // @ts-ignore
                         let isNew = component.readByte();
                         let playerId = component.readByte();
-                        this.amongUsState.spawnPlayer(playerId, part.components[2].netId);
+                        this.amongUsState.spawnPlayer(playerId, part.ownerId, part.components[2].netId);
                     }
+                    break;
+                case GameDataType.Despawn:
+                    this.amongUsState.removePlayerByNetId(part.netId);
                     break;
                 default:
                     console.log(part.type);
@@ -112,7 +113,6 @@ export class AmongUsProxy implements Client {
     private processRPCData(part: RPCGameDataPacket) {
         switch (part.flag) {
             case RPCFlag.UpdateGameData:
-                console.log(part.players);
                 for (let player of part.players) {
                     this.amongUsState.updatePlayerSetGameData(player.playerId, player);
                 }
