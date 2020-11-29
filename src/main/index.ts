@@ -5,10 +5,11 @@ import {bind} from 'kr-udp-proxy';
 import {AmongUsProxy} from "./AmongUsProxy";
 import {PlayerColor} from "@among-js/data";
 import {AmongUsSocket} from '@among-js/sus';
-import AmongUsState from "./AmongUsState";
+import AmongUsState, {PlayerAudioSettings} from "./AmongUsState";
 import {format as formatUrl} from "url";
 import path from "path";
-//import DiscordRPC from "./DiscordRPC";
+import DiscordRPC from "./DiscordRPC";
+import {Vector2} from '@among-js/util';
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -57,8 +58,9 @@ async function createDummies() {
   for (let i = 0; i < 1; i++) {
     let socket = new AmongUsSocket('Dummy' + i);
     socket.connect(i == 0 ? 22024 : 22023, "localhost").then(() => {
-      socket.joinGame('NGVSLO').then(() => {
+      socket.joinGame('XZNNDO').then(() => {
         setTimeout(function() {socket.spawn(PlayerColor.Lime)}, 1000);
+        setTimeout(function() {socket.move(new Vector2(-0.3, 2.4), new Vector2(0, -2))}, 2000);
       })
     })
   }
@@ -81,13 +83,18 @@ app.on('activate', () => {
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
   mainWindow = createMainWindow();
+})
 
-  const amongUsState = new AmongUsState();
-  //const discordRPC = new DiscordRPC();
-  //discordRPC.connect();
+ipcMain.on('ready', async (event) => {
+  const amongUsState = new AmongUsState(event.reply);
+  const discordRPC = new DiscordRPC(event.reply);
+
+  amongUsState.on('updatePlayerAudio', (playerAudio: PlayerAudioSettings) => {
+    discordRPC.setUserAudio(playerAudio.playerName, playerAudio.volume, 1 - playerAudio.balance, playerAudio.balance);
+  })
 
   ipcMain.on('discordLogin', () => {
-    console.log("login");
+    discordRPC.connect();
   })
   bind(() => new AmongUsProxy(amongUsState), {
     // fromAddress: '0.0.0.0',

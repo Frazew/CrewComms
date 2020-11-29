@@ -5,3 +5,4 @@ dist
 .compilerc
 yarn-error.log
 yarn.lock
+src/main/config/discord-secrets.ts

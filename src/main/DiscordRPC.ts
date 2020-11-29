@@ -1,50 +1,55 @@
 import {Client} from "discord-rpc";
+import {clientId, clientSecret} from "./config/discord-secrets";
 
 export interface DiscordState {
     users: any[] | undefined;
     username: string;
-    current_channel: string;
+    current_channel: string | undefined;
 }
 
 export default class DiscordRPC {
+    eventReply: Function;
     discordState: DiscordState;
     rpc: Client;
 
-    constructor() {
+    constructor(eventReply: Function) {
         this.discordState = {} as DiscordState;
         this.rpc = new Client({ transport: 'ipc' });
+        this.eventReply = eventReply
     }
 
     getCurrentChannel() {
-        this.rpc.request('GET_SELECTED_VOICE_CHANNEL', {}).then(r => {
+        this.rpc.request('GET_SELECTED_VOICE_CHANNEL', {}).then((r:any) => {
             if (r) {
                 this.discordState.current_channel = r.name;
-                this.discordState.users = r.voice_states
+                this.discordState.users = r.voice_states;
+            } else {
+                this.discordState.current_channel = undefined;
             }
+            this.eventReply('discordState', this.discordState);
         });
     }
 
+    setupCurrentChannelListener() {
+        setTimeout(this.getCurrentChannel, 3000);
+    }
     connect() {
-        const clientId = '';
         this.rpc.on('ready', () => {
             console.log('Logged in as', this.rpc.application.name);
             console.log('Authed for user', this.rpc.user.username);
             this.discordState.username = this.rpc.user.username;
+            this.eventReply('discordState', this.discordState);
+            //this.setupCurrentChannelListener()
             this.getCurrentChannel();
-
-            this.rpc.subscribe("VOICE_CHANNEL_SELECT", (channel) => {
+            this.rpc.subscribe("VOICE_CHANNEL_SELECT", (channel: any) => {
                 if (channel.channel_id != null) {
                     this.getCurrentChannel();
                 }
             }).catch(console.error);
 
-            this.rpc.subscribe("VOICE_STATE_UPDATE", (state) => {
-                console.log(state);
-            }).catch(console.error);
-
         });
         if (!this.discordState.username) {
-            let accessToken = '';//this.store.get('discordToken');
+            /*let accessToken = '';//this.store.get('discordToken');
             if (accessToken != '') {
                 this.rpc.login({
                     clientId,
@@ -55,12 +60,21 @@ export default class DiscordRPC {
                 this.rpc.login({
                     clientId,
                     scopes: ["rpc"],
+                    clientSecret: '',
                     redirectUri: "http://localhost/",
-                    clientSecret: ""
                 }).then(r => {
                     //this.store.set('discordToken', r.accessToken);
                 }).catch(console.error)
-            }
+            }*/
+            this.rpc.connect(clientId).then((r:any) => {
+                this.rpc.login({
+                    clientId,
+                    scopes: ["rpc"],
+                    redirectUri: 'http://localhost/lol',
+                    clientSecret
+                }).catch(console.error)
+            }).catch(console.error);
+
         } else {
             this.getCurrentChannel();
         }
@@ -79,9 +93,9 @@ export default class DiscordRPC {
                             right: Math.round(right * 10) / 10
                         },
                         mute: false
-                    }).then(r => console.log(r)).catch(console.error);
+                    }).catch(console.error);
                 }
             }
         }
     }
-}*/
+}
