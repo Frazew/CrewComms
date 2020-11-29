@@ -29,12 +29,10 @@
     "dev": "electron-webpack dev"
   },
   "devDependencies": {
-    "@among-js/sus": "^0.2.0",
     "@types/bytebuffer": "^5.0.42",
     "@types/node": "12",
+    "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
-    "@types/react": "^16.9.53",
-    "discord-rpc": "^3.1.4",
     "electron": "9.3.3",
     "electron-builder": "^22.9.1",
     "electron-compilers": "^5.9.0",
@@ -45,12 +43,17 @@
     "webpack": "~4.42.1"
   },
   "dependencies": {
-    "@among-js/data": "^0.2.0",
-    "@among-js/packets": "^0.2.0",
-    "@types/discord-rpc": "^3.0.4",
+    "@among-js/data": "../CrewCommsModules/among-js/packages/data/dist",
+    "@among-js/sus": "../CrewCommsModules/among-js/packages/sus/dist",
+    "@among-js/packets": "../CrewCommsModules/among-js/packages/packets/dist",
+    "@among-js/hazel": "../CrewCommsModules/among-js/packages/hazel/dist",
+    "@among-js/util": "../CrewCommsModules/among-js/packages/util/dist",
+    "@type/discord-rpc": "../CrewCommsModules/@types/discord-rpc",
+    "discord-rpc": "../CrewCommsModules/discord-rpc",
     "bytebuffer": "^5.0.1",
     "electron-compile": "^6.4.3",
     "kr-udp-proxy": "^1.0.12",
+    "node-fetch": "^2.6.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
   },
