@@ -33,13 +33,22 @@ let configStore = new Store<ConfigSchema>({
 let mainWindow: BrowserWindow | null;
 
 function createMainWindow(): BrowserWindow {
-  const window = new BrowserWindow({
+  let options = {
+    width: 500,
+    height: 600,
+    resizable: false,
+    maximizable: false,
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
       webSecurity: false
     }
-  })
+  }
+  if (isDevelopment) {
+    options.resizable = true;
+  }
+  const window = new BrowserWindow(options)
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -91,17 +100,24 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   // on macOS it is common to re-create a window even after all windows have been closed
-  if (mainWindow === null) {
+  if (mainWindow === null || mainWindow === undefined) {
     mainWindow = createMainWindow()
   }
 })
 
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
-  mainWindow = createMainWindow();
+  if (mainWindow === null || mainWindow === undefined) {
+    mainWindow = createMainWindow();
+  }
+});
+
+ipcMain.on('quit', () => {
+  // @ts-ignore
+  mainWindow.close();
 })
 
-ipcMain.on('ready', async (event) => {
+ipcMain.on('ready', (event) => {
   const amongUsState = new AmongUsState(event.reply);
   const discordRPC = new DiscordRPC(event.reply, configStore);
 
@@ -121,5 +137,7 @@ ipcMain.on('ready', async (event) => {
     sync: true
     // onError: err=>{ console.error(err); }
   });
-  createDummies();
+  if (isDevelopment) {
+    createDummies();
+  }
 })

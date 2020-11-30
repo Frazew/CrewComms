@@ -1,6 +1,11 @@
 {
 	"extends": "./node_modules/electron-webpack/tsconfig-base.json",
 	"compilerOptions": {
-		"jsx": "react"
-	}
+		"jsx": "react",
+		"typeRoots": ["./types", "node_modules/@types"]
+	},
+	"exclude": [
+		"among-js/",
+		"types"
+	]
 }

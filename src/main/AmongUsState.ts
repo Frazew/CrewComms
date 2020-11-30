@@ -21,7 +21,7 @@ export interface GameState {
 }
 
 export enum GlobalState {
-    IN_LOBBY,IN_GAME,IN_DISCUSSION, DISCONNECTED, UNKNOWN
+    IN_LOBBY, IN_GAME, IN_DISCUSSION, DISCONNECTED, UNKNOWN
 }
 
 
@@ -141,15 +141,18 @@ export default class AmongUsState extends EventEmitter {
 
         if ((other.data?.isDead && !me.data?.isDead) /*|| other.inVent*/) {
             volume = 0;
-        } else if (/*this.globalState === GlobalState.IN_LOBBY || */this.globalState === GlobalState.IN_DISCUSSION) {
+        } else if (this.globalState === GlobalState.IN_DISCUSSION) {
             volume = 100;
-        } else if (this.globalState === GlobalState.IN_GAME || true) {
+        } else if (this.globalState === GlobalState.IN_GAME || this.globalState === GlobalState.IN_LOBBY) {
             let vect_x = Math.abs(other.pos_x - me.pos_x);
             let vect_y = Math.abs(other.pos_y - me.pos_y);
             let r = Math.sqrt(Math.pow(vect_x, 2) + Math.pow(vect_y, 2));
             let theta = Math.atan(vect_y / vect_x);
 
             let decay_factor = Math.exp(-1.5);
+            if (this.globalState === GlobalState.IN_LOBBY) {
+                decay_factor = Math.exp(-4);
+            }
             volume = Math.floor(80 * (Math.exp(-r) - decay_factor) / (1 - decay_factor));
             volume = Math.min(Math.max(0, volume), 80);
 
@@ -158,7 +161,7 @@ export default class AmongUsState extends EventEmitter {
             balance = Math.round(balance * 10) / 10
         }
         this.emit('updatePlayerAudio', <PlayerAudioSettings>{
-            playerName: me.data?.playerName,
+            playerName: other.data?.playerName,
             volume,
             balance
         })

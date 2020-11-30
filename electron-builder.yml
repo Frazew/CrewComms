@@ -1,0 +1,10 @@
+appId: fr.frazew.crewcomms
+productName: CrewComms
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - from: .
+    filter:
+      - package.json
+      - app

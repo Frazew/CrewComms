@@ -7,13 +7,13 @@ import {
     PayloadType,
     prettyDisconnectReason,
     RPCFlag,
-    RPCGameDataPacket
+    RPCGameDataPacket,
+    PayloadPacket
 } from "@among-js/data";
 import ByteBuffer from "bytebuffer";
-import {parsePayloads} from "@among-js/packets";
-import {PayloadPacket} from "@among-js/data/types";
 import {v2NumberToCode} from "@among-js/util";
 import AmongUsState, {GlobalState} from "./AmongUsState";
+import {parsePayloads} from "@among-js/packets";
 
 export class AmongUsProxy implements Client {
     amongUsState: AmongUsState;

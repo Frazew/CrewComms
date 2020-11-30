@@ -10,6 +10,14 @@ body {
 	overflow: hidden;
 }
 
+html {
+	-webkit-app-region: drag !important;
+}
+
+* {
+	-webkit-app-region: no-drag;
+}
+
 #app {
 	height: 100vh;
 	width: 100vw;
@@ -45,6 +53,10 @@ h1 {
 	font-size: 40px;
 }
 
+button {
+	-webkit-app-region: no-drag;
+}
+
 .button {
 	background: none;
 	font-family: 'Arial', sans-serif;
@@ -61,4 +73,14 @@ h1 {
 .button:hover:enabled {
 	cursor: pointer;
 	border: 6px solid #00ff00;
+}
+
+.button-close {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	padding: 5px;
+	width: 50px;
+	height: 50px;
+	line-height: 25px;
 }

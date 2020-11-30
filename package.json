@@ -1,14 +1,14 @@
 {
   "name": "crewcomms",
-  "version": "0.1",
+  "version": "0.2.0",
   "description": "A proximity voice chat Discord implementation for the game Among Us",
   "main": "./dist/main.bundle.js",
   "build": {
     "appId": "fr.frazew.crewcomms",
     "productName": "CrewComms",
     "directories": {
-      "app": "./dist/",
-      "output": "./out/"
+      "app": "./",
+      "output": "./dist/"
     },
     "mac": {
       "target": "pkg"
@@ -25,7 +25,8 @@
     "start": "electron .",
     "pre-pack": "electron-compile --appDir . ./src",
     "package": "electron-builder --dir",
-    "dist": "electron-builder",
+    "compile": "electron-webpack ./src",
+    "dist": "yarn compile && electron-builder",
     "dev": "electron-webpack dev"
   },
   "devDependencies": {
@@ -43,19 +44,15 @@
     "webpack": "~4.42.1"
   },
   "dependencies": {
-    "@among-js/data": "../CrewCommsModules/among-js/packages/data/dist",
-    "@among-js/sus": "../CrewCommsModules/among-js/packages/sus/dist",
-    "@among-js/packets": "../CrewCommsModules/among-js/packages/packets/dist",
-    "@among-js/hazel": "../CrewCommsModules/among-js/packages/hazel/dist",
-    "@among-js/util": "../CrewCommsModules/among-js/packages/util/dist",
-    "@type/discord-rpc": "../CrewCommsModules/@types/discord-rpc",
-    "discord-rpc": "../CrewCommsModules/discord-rpc",
+    "@among-js/data": "^0.2.0",
     "bytebuffer": "^5.0.1",
     "electron-compile": "^6.4.3",
+    "electron-store": "^6.0.1",
     "kr-udp-proxy": "^1.0.12",
     "node-fetch": "^2.6.1",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "source-map-support": "^0.5.16"
   },
   "repository": {
     "type": "git",

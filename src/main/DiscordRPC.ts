@@ -54,21 +54,22 @@ export default class DiscordRPC {
         });
         if (!this.discordState.username) {
             let accessToken: string = this.configStore.get('discordToken');
-            if (accessToken != '') {
+
+            if (accessToken == '' || accessToken == undefined) {
+                this.rpc.login({
+                    clientId,
+                    scopes: ["rpc"],
+                    clientSecret,
+                    redirectUri: "http://localhost/lol",
+                }).then((r: any) => {
+                    this.configStore.set('discordToken', r.accessToken);
+                }).catch(console.error)
+            } else {
                 this.rpc.login({
                     clientId,
                     accessToken,
                     scopes: ["rpc"]
                 }).catch(console.error);
-            } else {
-                this.rpc.login({
-                    clientId,
-                    scopes: ["rpc"],
-                    clientSecret,
-                    redirectUri: "http://localhost/",
-                }).then((r: any) => {
-                    this.configStore.set('discordToken', r.accessToken);
-                }).catch(console.error)
             }
         } else {
             this.getCurrentChannel();
