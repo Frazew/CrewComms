@@ -6,3 +6,4 @@ dist
 yarn-error.log
 yarn.lock
 src/main/config/discord-secrets.ts
+src/main/config/config.ts

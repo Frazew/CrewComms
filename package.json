@@ -45,9 +45,12 @@
   },
   "dependencies": {
     "@among-js/data": "^0.2.0",
+    "@node-steam/vdf": "^2.1.0",
+    "@types/jsbn": "^1.2.29",
     "bytebuffer": "^5.0.1",
     "electron-compile": "^6.4.3",
     "electron-store": "^6.0.1",
+    "ip-address": "^7.1.0",
     "kr-udp-proxy": "^1.0.12",
     "node-fetch": "^2.6.1",
     "react": "^17.0.1",

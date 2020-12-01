@@ -5,12 +5,14 @@ import {bind} from 'kr-udp-proxy';
 import {AmongUsProxy} from "./AmongUsProxy";
 import {PlayerColor} from "@among-js/data";
 import {AmongUsSocket} from '@among-js/sus';
-import AmongUsState, {PlayerAudioSettings} from "./AmongUsState";
+import AmongUsState, {GlobalState, PlayerAudioSettings} from "./AmongUsState";
 import {format as formatUrl} from "url";
 import path from "path";
 import DiscordRPC from "./DiscordRPC";
 import {Vector2} from '@among-js/util';
 import Store from 'electron-store';
+import {RegionInfo} from "./RegionInfo";
+import {customServer} from "./config/config";
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -120,22 +122,30 @@ ipcMain.on('quit', () => {
 ipcMain.on('ready', (event) => {
   const amongUsState = new AmongUsState(event.reply);
   const discordRPC = new DiscordRPC(event.reply, configStore);
+  const regionFile = new RegionInfo();
+  if (!regionFile.getIsCurrentServer()) {
+    amongUsState.updateGlobalState(GlobalState.NOT_CONFIGURED);
+  } else {
+    amongUsState.updateGlobalState(GlobalState.DISCONNECTED);
+  }
 
   amongUsState.on('updatePlayerAudio', (playerAudio: PlayerAudioSettings) => {
     discordRPC.setUserAudio(playerAudio.playerName, playerAudio.volume, 1 - playerAudio.balance, playerAudio.balance);
   })
 
+  ipcMain.handle('configureRegionInfo', () => {
+    regionFile.setServerToLocalhost();
+    amongUsState.updateGlobalState(GlobalState.DISCONNECTED);
+  })
   ipcMain.on('discordLogin', () => {
     discordRPC.connect();
   })
   bind(() => new AmongUsProxy(amongUsState), {
-    // fromAddress: '0.0.0.0',
-    fromPort: 22024,
-    toAddress: "localhost", //matchmakingServers.EU[1],
+    fromAddress: '127.0.0.1',
+    fromPort: 22023,
+    toAddress: customServer,
     toPort: 22023,
-    // keepPortTimeout: 10000,
     sync: true
-    // onError: err=>{ console.error(err); }
   });
   if (isDevelopment) {
     createDummies();

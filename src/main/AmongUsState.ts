@@ -21,7 +21,7 @@ export interface GameState {
 }
 
 export enum GlobalState {
-    IN_LOBBY, IN_GAME, IN_DISCUSSION, DISCONNECTED, UNKNOWN
+    IN_LOBBY, IN_GAME, IN_DISCUSSION, DISCONNECTED, UNKNOWN, NOT_CONFIGURED
 }
 
 
@@ -66,6 +66,9 @@ export default class AmongUsState extends EventEmitter {
 
     updateGlobalState(state: GlobalState) {
         this.globalState = state;
+        if (this.globalState == GlobalState.DISCONNECTED) {
+            this.gameState.code = '';
+        }
         this.onUpdateGlobalState();
     }
 

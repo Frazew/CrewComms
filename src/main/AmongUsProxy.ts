@@ -4,11 +4,10 @@ import {
     GameDataToPayloadPacket,
     GameDataType,
     PacketType,
+    PayloadPacket,
     PayloadType,
-    prettyDisconnectReason,
     RPCFlag,
-    RPCGameDataPacket,
-    PayloadPacket
+    RPCGameDataPacket
 } from "@among-js/data";
 import ByteBuffer from "bytebuffer";
 import {v2NumberToCode} from "@among-js/util";
@@ -31,9 +30,7 @@ export class AmongUsProxy implements Client {
         const packetType: PacketType = msg[0];
         switch (packetType) {
             case PacketType.Disconnect: {
-                console.warn(
-                    `Disconnecting by request:\n${prettyDisconnectReason(msg[1])}`
-                );
+                this.amongUsState.updateGlobalState(GlobalState.DISCONNECTED);
                 break;
             }
 
