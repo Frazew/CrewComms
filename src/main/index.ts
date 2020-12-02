@@ -137,8 +137,8 @@ ipcMain.on('ready', (event) => {
     regionFile.setServerToLocalhost();
     amongUsState.updateGlobalState(GlobalState.DISCONNECTED);
   })
-  ipcMain.on('discordLogin', () => {
-    discordRPC.connect();
+  ipcMain.on('discordLogin', (e, force) => {
+    discordRPC.connect(e.reply, force);
   })
   bind(() => new AmongUsProxy(amongUsState), {
     fromAddress: '127.0.0.1',

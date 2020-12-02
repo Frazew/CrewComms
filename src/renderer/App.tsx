@@ -21,7 +21,7 @@ function App() {
 
     return (
         <div id="main">
-            <button className={"button button-close"} onClick={(e) => { ipcRenderer.send('quit') }}>&times;</button>
+            <button className={"button button-close"} onClick={() => { ipcRenderer.send('quit') }}>&times;</button>
             <h1>CrewComms</h1>
             <DiscordContext.Provider value={discordState}>
                 <Discord />

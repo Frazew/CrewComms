@@ -37,7 +37,7 @@ export default class DiscordRPC {
     setupCurrentChannelListener() {
         setTimeout(this.getCurrentChannel, 3000);
     }
-    connect() {
+    connect(reply: Function, force: boolean) {
         this.rpc.on('ready', () => {
             console.log('Logged in as', this.rpc.application.name);
             console.log('Authed for user', this.rpc.user.username);
@@ -53,6 +53,9 @@ export default class DiscordRPC {
 
         });
         if (!this.discordState.username) {
+            if (force) {
+                this.configStore.set('discordToken', '');
+            }
             let accessToken: string = this.configStore.get('discordToken');
 
             if (accessToken == '' || accessToken == undefined) {
@@ -62,14 +65,21 @@ export default class DiscordRPC {
                     clientSecret,
                     redirectUri: "http://localhost/lol",
                 }).then((r: any) => {
+                    reply('discordLoginSuccess', true, undefined);
                     this.configStore.set('discordToken', r.accessToken);
-                }).catch(console.error)
+                }).catch((e) => {
+                    reply('discordLoginSuccess', false, e.toString());
+                    console.error(e)
+                })
             } else {
                 this.rpc.login({
                     clientId,
                     accessToken,
                     scopes: ["rpc"]
-                }).catch(console.error);
+                }).catch((e) => {
+                    console.error(e);
+                    reply('discordLoginSuccess', false, e.toString());
+                });
             }
         } else {
             this.getCurrentChannel();
