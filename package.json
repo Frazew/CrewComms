@@ -1,6 +1,6 @@
 {
   "name": "crewcomms",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A proximity voice chat Discord implementation for the game Among Us",
   "main": "./dist/main.bundle.js",
   "build": {
@@ -26,7 +26,7 @@
     "pre-pack": "electron-compile --appDir . ./src",
     "package": "electron-builder --dir",
     "compile": "electron-webpack ./src",
-    "dist": "yarn compile && electron-builder",
+    "dist": "yarn compile && electron-builder --win --x64",
     "dev": "electron-webpack dev"
   },
   "devDependencies": {

@@ -6,8 +6,12 @@ export interface PlayerState {
     pos_x: number;
     pos_y: number;
     netId: number;
+    ventNetId: number;
+    deathNetId: number;
     clientId: number;
     playerId: number;
+    inVent: boolean;
+    isDead: boolean;
 }
 
 export interface GameState {
@@ -79,18 +83,26 @@ export default class AmongUsState extends EventEmitter {
             this.gameState.clientIdToPlayer.delete(playerState.clientId);
             // @ts-ignore we checked before that it wasn't undefined
             this.gameState.playerIdToPlayer.delete(playerState.playerId);
+            // @ts-ignore we checked before that it wasn't undefined
+            this.gameState.netIdToPlayer.delete(playerState.ventNetId);
+            // @ts-ignore we checked before that it wasn't undefined
+            this.gameState.netIdToPlayer.delete(playerState.deathNetId);
             this.gameState.netIdToPlayer.delete(netId);
             this.onUpdateGameState();
         }
     }
 
-    spawnPlayer(playerId: number, clientId: number, netId: number) {
+    spawnPlayer(playerId: number, clientId: number, netId: number, ventNetId: number, deathNetId: number) {
         let playerState: PlayerState = {
             pos_x: 0,
             pos_y: 0,
             netId: netId,
+            ventNetId: ventNetId,
+            deathNetId: deathNetId,
             clientId: clientId,
-            playerId: playerId
+            playerId: playerId,
+            inVent: false,
+            isDead: false
         };
         if (clientId == this.gameState.selfPlayerClientId) {
             this.gameState.selfPlayerNetId = netId;
@@ -98,6 +110,8 @@ export default class AmongUsState extends EventEmitter {
         }
         this.gameState.playerIdToPlayer.set(playerId, playerState);
         this.gameState.netIdToPlayer.set(netId, playerState);
+        this.gameState.netIdToPlayer.set(ventNetId, playerState);
+        this.gameState.netIdToPlayer.set(deathNetId, playerState);
         this.gameState.clientIdToPlayer.set(clientId, playerState);
         this.onUpdateGameState();
     }
@@ -107,8 +121,35 @@ export default class AmongUsState extends EventEmitter {
         let playerState = this.gameState.playerIdToPlayer.get(playerId);
         if (playerState !== undefined) {
             playerState.data = gameData;
+            this.onPlayerUpdate(playerState.netId, playerState?.playerId);
         } else {
             console.error("[updatePlayerSetGameData] Player " + playerId + "not found!")
+        }
+        this.onUpdateGameState();
+    }
+
+    updatePlayerSetInVent(netId: number, inVent: boolean) {
+        let playerState = this.gameState.netIdToPlayer.get(netId);
+        if (playerState !== undefined) {
+            console.log(playerState + " is now in vent " + inVent);
+            playerState.inVent = inVent;
+            this.onPlayerUpdate(netId, playerState?.playerId);
+        } else {
+            console.error("[updatePlayerSetInVent] Player " + netId + "not found!")
+        }
+        this.onUpdateGameState();
+    }
+
+    updatePlayerSetDead(netId: number | undefined, playerId: number | undefined) {
+        let playerState: PlayerState | undefined = undefined;
+        if (netId != undefined) playerState = this.gameState.netIdToPlayer.get(netId);
+        else if (playerId != undefined) playerState = this.gameState.playerIdToPlayer.get(playerId);
+
+        if (playerState !== undefined) {
+            playerState.isDead = true;
+            this.onPlayerUpdate(playerState.netId, playerState.playerId);
+        } else {
+            console.error("[updatePlayerSetDead] Player " + netId + "not found!")
         }
         this.onUpdateGameState();
     }
@@ -141,8 +182,11 @@ export default class AmongUsState extends EventEmitter {
         let me: PlayerState = this.gameState.netIdToPlayer.get(this.gameState.selfPlayerNetId);
         // @ts-ignore we checked before that it wasn't undefined
         let other: PlayerState = this.gameState.netIdToPlayer.get(netId);
-
-        if ((other.data?.isDead && !me.data?.isDead) /*|| other.inVent*/) {
+        console.log(other);
+        let checkDead = (player: PlayerState) => {
+            return player.isDead || player.data?.isDead
+        }
+        if ((checkDead(other) && !checkDead(me)) || other.inVent) {
             volume = 0;
         } else if (this.globalState === GlobalState.IN_DISCUSSION) {
             volume = 100;

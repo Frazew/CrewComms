@@ -2,12 +2,12 @@ import {Client, Origin} from "kr-udp-proxy";
 import {
     GameDataPayloadPacket,
     GameDataToPayloadPacket,
-    GameDataType,
+    GameDataType, MurderPlayerRPCGameDataPacket,
     PacketType,
     PayloadPacket,
-    PayloadType,
+    PayloadType, prettyGameDataType, prettyPayloadType, prettyRPCFlag,
     RPCFlag,
-    RPCGameDataPacket
+    RPCGameDataPacket, VotingCompleteRPCGameDataPacket
 } from "@among-js/data";
 import ByteBuffer from "bytebuffer";
 import {v2NumberToCode} from "@among-js/util";
@@ -71,8 +71,14 @@ export class AmongUsProxy implements Client {
                 case PayloadType.GameDataTo:
                     this.processGameData(payload);
                     break;
+                case PayloadType.StartGame:
+                    this.amongUsState.updateGlobalState(GlobalState.IN_GAME);
+                    break;
+                case PayloadType.EndGame:
+                    this.amongUsState.updateGlobalState(GlobalState.IN_LOBBY);
+                    break;
                 default:
-                    console.log("Unknown payload type " + payload.type);
+                    console.log("Unknown payload type " + prettyPayloadType(payload.type));
             }
         }
     }
@@ -93,16 +99,16 @@ export class AmongUsProxy implements Client {
                         let component = part.components[0].data;
                         // Ignore isNew but we need to read the byte, we could also increment the offset but meh
                         // @ts-ignore
-                        let isNew = component.readByte();
+                        component.readByte();
                         let playerId = component.readByte();
-                        this.amongUsState.spawnPlayer(playerId, part.ownerId, part.components[2].netId);
+                        this.amongUsState.spawnPlayer(playerId, part.ownerId, part.components[2].netId, part.components[1].netId, part.components[0].netId);
                     }
                     break;
                 case GameDataType.Despawn:
                     this.amongUsState.removePlayerByNetId(part.netId);
                     break;
                 default:
-                    console.log(part.type);
+                    console.log("Unknown GameData type " + prettyGameDataType(part.type));
             }
         }
     }
@@ -114,6 +120,32 @@ export class AmongUsProxy implements Client {
                     this.amongUsState.updatePlayerSetGameData(player.playerId, player);
                 }
                 break;
+            case RPCFlag.ReportDeadBody || RPCFlag.StartMeeting:
+                this.amongUsState.updateGlobalState(GlobalState.IN_DISCUSSION);
+                for (let player of this.amongUsState.getGameState().clientIdToPlayer.values()) {
+                    this.amongUsState.onPlayerUpdate(player.netId, player.playerId);
+                }
+                break;
+            case RPCFlag.VotingComplete:
+                this.amongUsState.updateGlobalState(GlobalState.IN_GAME);
+                if ((part as VotingCompleteRPCGameDataPacket).exiled != 255) {
+                    this.amongUsState.updatePlayerSetDead(undefined, (part as VotingCompleteRPCGameDataPacket).exiled as number);
+                }
+                for (let player of this.amongUsState.getGameState().clientIdToPlayer.values()) {
+                    this.amongUsState.onPlayerUpdate(player.netId, player.playerId);
+                }
+                break;
+            case RPCFlag.EnterVent:
+                this.amongUsState.updatePlayerSetInVent(part.netId, true);
+                break;
+            case RPCFlag.ExitVent:
+                this.amongUsState.updatePlayerSetInVent(part.netId, false);
+                break;
+            case RPCFlag.MurderPlayer:
+                this.amongUsState.updatePlayerSetDead((part as MurderPlayerRPCGameDataPacket).id, undefined);
+                break;
+            default:
+                console.log("Unknown RPC type " + prettyRPCFlag(part.flag));
         }
     }
 }
