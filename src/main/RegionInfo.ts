@@ -17,28 +17,29 @@ class ServerInfoData {
     }
 
     serialize(buffer: ByteBuffer) {
-        buffer.writeByte(this.name.length);
+        buffer.writeUint8(this.name.length);
         buffer.writeString(this.name);
 
         let ipArray = this.ipv4.toArray();
         for (let i = 0; i < ipArray.length; i++) {
-            buffer.writeByte(ipArray[i]);
+            buffer.writeUint8(ipArray[i]);
         }
         buffer.writeUint16(this.port);
         buffer.writeUint32(0);
     }
 
     deserialize(buffer: ByteBuffer): ServerInfoData {
-        this.name = buffer.readString(buffer.readByte());
+        this.name = buffer.readString(buffer.readUint8());
 
         let ipBytes: number[] = [];
         for (let i = 0; i < 4; i++) {
-            ipBytes.push(buffer.readByte());
+            ipBytes.push(Number(buffer.readUint8()));
         }
+
         this.ipv4 = new Address4(ipBytes.join('.'));
 
         this.port = buffer.readUint16();
-        buffer.readInt32();
+        buffer.readUint32();
 
         return this;
     }
@@ -72,9 +73,10 @@ class RegionInfoData {
 
     deserialize(buffer: ByteBuffer): RegionInfoData {
         buffer.readInt32();
-        this.name = buffer.readString(buffer.readByte());
-        this.mainIp = buffer.readString(buffer.readByte());
-        for (let i = 0; i < buffer.readInt32(); i++) {
+        this.name = buffer.readString(buffer.readUint8());
+        this.mainIp = buffer.readString(buffer.readUint8());
+        let serverLength: number = buffer.readInt32();
+        for (let i = 0; i < serverLength; i++) {
             let server = new ServerInfoData().deserialize(buffer);
             this.servers.push(server);
         }
