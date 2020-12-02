@@ -14,6 +14,7 @@ export default class DiscordRPC {
     discordState: DiscordState;
     rpc: Client;
     configStore: Store<ConfigSchema>;
+    currentChannelInterval: any;
 
     constructor(eventReply: Function, configStore: Store<ConfigSchema>) {
         this.discordState = {} as DiscordState;
@@ -32,11 +33,15 @@ export default class DiscordRPC {
             }
             this.eventReply('discordState', this.discordState);
         });
+        this.setupCurrentChannelListener();
     }
 
     setupCurrentChannelListener() {
-        setTimeout(this.getCurrentChannel, 3000);
+        if (this.currentChannelInterval == undefined) {
+            this.currentChannelInterval = setInterval(() => {this.getCurrentChannel();}, 3000);
+        }
     }
+
     connect(reply: Function, force: boolean) {
         this.rpc.on('ready', () => {
             console.log('Logged in as', this.rpc.application.name);

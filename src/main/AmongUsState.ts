@@ -72,6 +72,7 @@ export default class AmongUsState extends EventEmitter {
         this.globalState = state;
         if (this.globalState == GlobalState.DISCONNECTED) {
             this.gameState.code = '';
+            this.onUpdateGameState();
         }
         this.onUpdateGlobalState();
     }
@@ -182,7 +183,7 @@ export default class AmongUsState extends EventEmitter {
         let me: PlayerState = this.gameState.netIdToPlayer.get(this.gameState.selfPlayerNetId);
         // @ts-ignore we checked before that it wasn't undefined
         let other: PlayerState = this.gameState.netIdToPlayer.get(netId);
-        console.log(other);
+
         let checkDead = (player: PlayerState) => {
             return player.isDead || player.data?.isDead
         }
